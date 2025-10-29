@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # MongoDB Database Service
+  mongodb:
+    image: mongo:5.0
+    container_name: todo-mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db   # Persistence storage
+    environment:
+      - MONGO_INITDB_DATABASE=camp2016
+    networks:
+      - todo-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongo localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Flask Application Service
+  flask-app:
+    build: .
+    container_name: todo-flask-app
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_HOST=mongodb
+      - MONGO_PORT=27017
+      - FLASK_ENV=development
+      - PORT=5000
+    depends_on:
+      - mongodb
+    networks:
+      - todo-network
+    volumes:
+      - .:/app
+    command: python app.py
+
+# Named volumes for data persistence
+volumes:
+  mongodb_data:
+    driver: local
+
+# Network for container communication
+networks:
+  todo-network:
+    driver: bridge
