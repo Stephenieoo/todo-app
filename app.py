@@ -122,13 +122,25 @@ def search():
 def about():
 	return render_template('credits.html',t=title,h=heading)
 
+#health check endpoints for kubenetes probes
 @app.route("/health")
 def health():
-	return {"status": "healthy", "version": VERSION}, 200
+	#returns 200 if the application is alive and healthy
+	try:
+		#check if the app can respond
+		return {"status":"healthy","message":"Application is running"},200
+	except Exception as e:
+		return {"status":"unhealthy","error":str(e)},503
 
 @app.route("/ready")
 def ready():
-	return {"status": "ready", "version": VERSION}, 200
+	#return 200 if the application is ready to receive traffic
+	try:
+		#check MongoDB connection
+		client.admin.command('ping')
+		return {"status":"ready","message":"Application is ready to receive traffic","database":"connected"},200
+	except Exception as e:
+		return {"status":"not ready","error":str(e),"database":"disconnected"},503
 
 if __name__ == "__main__":
 	env = os.environ.get('FLASK_ENV', 'development')
