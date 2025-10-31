@@ -4,6 +4,8 @@ from bson.objectid import ObjectId # For ObjectId to work
 from bson.errors import InvalidId # For catching InvalidId exception for ObjectId
 import os
 
+VERSION = "v2" #New Version Marker
+
 mongodb_host = os.environ.get('MONGO_HOST', 'localhost')
 mongodb_port = int(os.environ.get('MONGO_PORT', '27017'))
 client = MongoClient(mongodb_host, mongodb_port)    #Configure the connection to the database
@@ -27,13 +29,14 @@ def lists ():
 	a1="active"
 	return render_template('index.html',a1=a1,todos=todos_l,t=title,h=heading)
 
+#Add version display to the main page
 @app.route("/")
 @app.route("/uncompleted")
 def tasks ():
 	#Display the Uncompleted Tasks
 	todos_l = todos.find({"done":"no"})
 	a2="active"
-	return render_template('index.html',a2=a2,todos=todos_l,t=title,h=heading)
+	return render_template('index.html',a2=a2,todos=todos_l,t=title,h=heading,version=VERSION)
 
 
 @app.route("/completed")
@@ -121,11 +124,11 @@ def about():
 
 @app.route("/health")
 def health():
-	return "OK", 200
+	return {"status": "healthy", "version": VERSION}, 200
 
 @app.route("/ready")
 def ready():
-	return "OK", 200
+	return {"status": "ready", "version": VERSION}, 200
 
 if __name__ == "__main__":
 	env = os.environ.get('FLASK_ENV', 'development')
